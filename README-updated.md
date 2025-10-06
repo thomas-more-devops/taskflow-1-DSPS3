@@ -408,5 +408,3 @@ This project is perfect for learning Git version control:
    - Your live app will be available at your GitHub Pages URL
 
 Ready to start your DevOps journey with TaskFlow! 🚀
-
-Edited by Victor

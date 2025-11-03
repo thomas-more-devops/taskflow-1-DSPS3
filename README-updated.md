@@ -367,7 +367,7 @@ Thanks to all the students and developers who contributed to this project:
 
 See [CHANGELOG.md](CHANGELOG.md) for detailed version history.
 
-### v1.0.0 (Current)
+### v2.0.0 (Current)
 - ✨ Initial release with core functionality
 - 🎨 Modern, responsive design
 - 💾 Local storage persistence

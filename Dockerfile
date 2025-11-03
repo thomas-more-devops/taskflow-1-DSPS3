@@ -1,20 +1,42 @@
-# 1) Base image
-FROM node:22-alpine
-
-# 2) Workdir
+# -------- Builder stage --------
+FROM node:22-alpine AS builder
 WORKDIR /app
+ENV NODE_ENV=development
 
-# 3) Copy only package files first (better caching)
+# 1) Better caching: copy package files first
 COPY package*.json ./
 
-# 4) Install deps (prod only)
-RUN npm install --omit=dev
+# 2) Install ALL deps (dev deps included for builds like TS/Vite/Webpack)
+RUN npm ci
 
-# 5) Copy the rest of the app
+# 3) Copy source and build (if your project has a build step)
 COPY . .
+RUN npm run build --if-present
 
-# 6) Expose port
+# 4) Keep only production deps to shrink what we pass to final image
+RUN npm prune --omit=dev
+
+
+# -------- Production stage --------
+FROM node:22-alpine AS production
+WORKDIR /app
+ENV NODE_ENV=production
+
+# 5) Create and use a non-root user
+RUN addgroup -S app && adduser -S app -G app
+
+# 6) Copy only what is needed at runtime
+COPY --from=builder /app/package*.json ./
+COPY --from=builder /app/node_modules ./node_modules
+# If your app outputs to "dist", copy it. If it’s plain Node (e.g., server.js), this is harmless.
+# Copy your runtime files directly
+COPY --from=builder /app ./
+
+COPY --from=builder /app/*.js ./
+
+# 7) Permissions + runtime
+RUN chown -R app:app /app
+USER app
+
 EXPOSE 3000
-
-# 7) Start command
 CMD ["npm", "start"]
